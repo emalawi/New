@@ -10,7 +10,7 @@ body {
     margin: 0;
     font-family: Arial, sans-serif;
     background: #0f172a;
-    color: #ffffff;
+    color: white;
 }
 
 header {
@@ -25,11 +25,10 @@ header {
     position: fixed;
     top: 15px;
     right: 15px;
-    cursor: pointer;
-    font-size: 20px;
     background: #2563eb;
     padding: 10px 14px;
     border-radius: 6px;
+    cursor: pointer;
 }
 
 .container {
@@ -43,25 +42,20 @@ header {
     overflow: hidden;
 }
 
-.video-card iframe,
-.video-card video {
+iframe, video {
     width: 100%;
     height: 220px;
 }
 
-.video-card p {
+p {
     padding: 10px;
-    font-size: 14px;
 }
 
-/* Admin Panel */
+/* Admin panel */
 #adminPanel {
     display: none;
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
+    inset: 0;
     background: rgba(0,0,0,0.85);
 }
 
@@ -74,17 +68,12 @@ header {
     border-radius: 10px;
 }
 
-.admin-box h3 {
-    text-align: center;
-}
-
 input, textarea, button {
     width: 100%;
     margin-top: 10px;
     padding: 10px;
     border-radius: 6px;
     border: none;
-    font-size: 14px;
 }
 
 button {
@@ -104,19 +93,17 @@ button {
 <header>MegaAI Video Hub</header>
 <div class="menu" onclick="openAdmin()">☰ Admin</div>
 
-<div class="container" id="videoList">
-    <!-- Videos appear here -->
-</div>
+<div class="container" id="videoList"></div>
 
 <!-- Admin Panel -->
 <div id="adminPanel">
     <div class="admin-box">
         <h3>Owner Login</h3>
-        <input type="password" id="password" placeholder="Enter password">
+        <input type="password" id="password" placeholder="Password">
         <button onclick="login()">Login</button>
 
         <div id="adminForm" style="display:none;">
-            <input type="text" id="videoURL" placeholder="Video Embed URL or MP4 URL">
+            <input type="text" id="videoURL" placeholder="YouTube or MP4 URL">
             <textarea id="videoDesc" placeholder="Video description"></textarea>
             <button onclick="addVideo()">Add Video</button>
         </div>
@@ -128,14 +115,15 @@ button {
 <script>
 const OWNER_PASSWORD = "MegaAI";
 
+/* Open / close admin */
 function openAdmin() {
     document.getElementById("adminPanel").style.display = "block";
 }
-
 function closeAdmin() {
     document.getElementById("adminPanel").style.display = "none";
 }
 
+/* Login */
 function login() {
     const pass = document.getElementById("password").value;
     if (pass === OWNER_PASSWORD) {
@@ -146,14 +134,30 @@ function login() {
     }
 }
 
+/* Convert YouTube URL to embed */
+function convertYouTube(url) {
+    if (url.includes("youtube.com/watch?v=")) {
+        const id = url.split("v=")[1].split("&")[0];
+        return "https://www.youtube.com/embed/" + id;
+    }
+    if (url.includes("youtu.be/")) {
+        const id = url.split("youtu.be/")[1];
+        return "https://www.youtube.com/embed/" + id;
+    }
+    return url;
+}
+
+/* Add video */
 function addVideo() {
-    const url = document.getElementById("videoURL").value;
-    const desc = document.getElementById("videoDesc").value;
+    let url = document.getElementById("videoURL").value.trim();
+    const desc = document.getElementById("videoDesc").value.trim();
 
     if (!url) {
-        alert("Please enter video URL");
+        alert("Enter video URL");
         return;
     }
+
+    url = convertYouTube(url);
 
     const videos = JSON.parse(localStorage.getItem("videos")) || [];
     videos.push({ url, desc });
@@ -165,24 +169,26 @@ function addVideo() {
     loadVideos();
 }
 
+/* Load videos */
 function loadVideos() {
     const list = document.getElementById("videoList");
     list.innerHTML = "";
+
     const videos = JSON.parse(localStorage.getItem("videos")) || [];
 
     videos.forEach(v => {
         const card = document.createElement("div");
         card.className = "video-card";
 
-        if (v.url.includes("youtube") || v.url.includes("embed")) {
+        if (v.url.includes("youtube.com/embed")) {
             card.innerHTML = `
-                <iframe src="${v.url}" frameborder="0" allowfullscreen></iframe>
-                <p>${v.desc || ""}</p>
+                <iframe src="${v.url}" allowfullscreen></iframe>
+                <p>${v.desc}</p>
             `;
         } else {
             card.innerHTML = `
                 <video controls src="${v.url}"></video>
-                <p>${v.desc || ""}</p>
+                <p>${v.desc}</p>
             `;
         }
 
