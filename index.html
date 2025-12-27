@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>MegaAI Video Hub</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #0f172a;
+    color: #ffffff;
+}
+
+header {
+    background: #1e293b;
+    padding: 15px;
+    text-align: center;
+    font-size: 22px;
+    font-weight: bold;
+}
+
+.menu {
+    position: fixed;
+    top: 15px;
+    right: 15px;
+    cursor: pointer;
+    font-size: 20px;
+    background: #2563eb;
+    padding: 10px 14px;
+    border-radius: 6px;
+}
+
+.container {
+    padding: 20px;
+}
+
+.video-card {
+    background: #1e293b;
+    margin-bottom: 20px;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.video-card iframe,
+.video-card video {
+    width: 100%;
+    height: 220px;
+}
+
+.video-card p {
+    padding: 10px;
+    font-size: 14px;
+}
+
+/* Admin Panel */
+#adminPanel {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.85);
+}
+
+.admin-box {
+    background: #1e293b;
+    width: 90%;
+    max-width: 400px;
+    margin: 60px auto;
+    padding: 20px;
+    border-radius: 10px;
+}
+
+.admin-box h3 {
+    text-align: center;
+}
+
+input, textarea, button {
+    width: 100%;
+    margin-top: 10px;
+    padding: 10px;
+    border-radius: 6px;
+    border: none;
+    font-size: 14px;
+}
+
+button {
+    background: #2563eb;
+    color: white;
+    cursor: pointer;
+}
+
+.close {
+    background: #dc2626;
+}
+</style>
+</head>
+
+<body>
+
+<header>MegaAI Video Hub</header>
+<div class="menu" onclick="openAdmin()">☰ Admin</div>
+
+<div class="container" id="videoList">
+    <!-- Videos appear here -->
+</div>
+
+<!-- Admin Panel -->
+<div id="adminPanel">
+    <div class="admin-box">
+        <h3>Owner Login</h3>
+        <input type="password" id="password" placeholder="Enter password">
+        <button onclick="login()">Login</button>
+
+        <div id="adminForm" style="display:none;">
+            <input type="text" id="videoURL" placeholder="Video Embed URL or MP4 URL">
+            <textarea id="videoDesc" placeholder="Video description"></textarea>
+            <button onclick="addVideo()">Add Video</button>
+        </div>
+
+        <button class="close" onclick="closeAdmin()">Close</button>
+    </div>
+</div>
+
+<script>
+const OWNER_PASSWORD = "MegaAI";
+
+function openAdmin() {
+    document.getElementById("adminPanel").style.display = "block";
+}
+
+function closeAdmin() {
+    document.getElementById("adminPanel").style.display = "none";
+}
+
+function login() {
+    const pass = document.getElementById("password").value;
+    if (pass === OWNER_PASSWORD) {
+        document.getElementById("adminForm").style.display = "block";
+        alert("Access granted");
+    } else {
+        alert("Wrong password");
+    }
+}
+
+function addVideo() {
+    const url = document.getElementById("videoURL").value;
+    const desc = document.getElementById("videoDesc").value;
+
+    if (!url) {
+        alert("Please enter video URL");
+        return;
+    }
+
+    const videos = JSON.parse(localStorage.getItem("videos")) || [];
+    videos.push({ url, desc });
+    localStorage.setItem("videos", JSON.stringify(videos));
+
+    document.getElementById("videoURL").value = "";
+    document.getElementById("videoDesc").value = "";
+
+    loadVideos();
+}
+
+function loadVideos() {
+    const list = document.getElementById("videoList");
+    list.innerHTML = "";
+    const videos = JSON.parse(localStorage.getItem("videos")) || [];
+
+    videos.forEach(v => {
+        const card = document.createElement("div");
+        card.className = "video-card";
+
+        if (v.url.includes("youtube") || v.url.includes("embed")) {
+            card.innerHTML = `
+                <iframe src="${v.url}" frameborder="0" allowfullscreen></iframe>
+                <p>${v.desc || ""}</p>
+            `;
+        } else {
+            card.innerHTML = `
+                <video controls src="${v.url}"></video>
+                <p>${v.desc || ""}</p>
+            `;
+        }
+
+        list.appendChild(card);
+    });
+}
+
+loadVideos();
+</script>
+
+</body>
+</html>
